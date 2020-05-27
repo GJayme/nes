@@ -11,6 +11,7 @@ type Mapper interface {
 	Step()
 	Save(encoder *gob.Encoder) error
 	Load(decoder *gob.Decoder) error
+	ShowROMAddress(address uint16) [uint16, string]
 }
 
 func NewMapper(console *Console) (Mapper, error) {

@@ -34,6 +34,26 @@ func (m *Mapper3) Load(decoder *gob.Decoder) error {
 func (m *Mapper3) Step() {
 }
 
+func (m *Mapper3) ShowROMAddress(address uint16) byte {
+	switch {
+	case address < 0x2000:
+		index := m.chrBank*0x2000 + int(address)
+		return [index, "CHR"]
+	case address >= 0xC000:
+		index := m.prgBank2*0x4000 + int(address-0xC000)
+		return [index, "PRG"]
+	case address >= 0x8000:
+		index := m.prgBank1*0x4000 + int(address-0x8000)
+		return [index, "PRG"]
+	case address >= 0x6000:
+		index := int(address) - 0x6000
+		return [index, "SRAM"]
+	default:
+		log.Fatalf("unhandled mapper3 read at address: 0x%04X", address)
+	}
+	return 0
+}
+
 func (m *Mapper3) Read(address uint16) byte {
 	switch {
 	case address < 0x2000:

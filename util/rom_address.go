@@ -8,7 +8,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/akitaonrails/nes/nes"
+	"nes"
 )
 
 func testRom(path string) (err error) {
@@ -21,6 +21,8 @@ func testRom(path string) (err error) {
 	if err != nil {
 		return err
 	}
+	var dummy bool
+	console.Load(&dummy)
 	console.StepSeconds(3)
 	return nil
 }

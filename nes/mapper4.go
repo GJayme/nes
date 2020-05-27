@@ -79,6 +79,25 @@ func (m *Mapper4) HandleScanLine() {
 	}
 }
 
+func (m *Mapper4) ShowROMAddress(address uint16) [uint16, string] {
+	switch {
+	case address < 0x2000:
+		bank := address / 0x0400
+		offset := address % 0x0400
+		return [m.chrOffsets[bank]+int(offset), "CHR"]
+	case address >= 0x8000:
+		address = address - 0x8000
+		bank := address / 0x2000
+		offset := address % 0x2000
+		return [m.prgOffsets[bank]+int(offset), "PRG"]
+	case address >= 0x6000:
+		return [int(address)-0x6000, "SRAM"]
+	default:
+		log.Fatalf("unhandled mapper4 read at address: 0x%04X", address)
+	}
+	return 0
+}
+
 func (m *Mapper4) Read(address uint16) byte {
 	switch {
 	case address < 0x2000:

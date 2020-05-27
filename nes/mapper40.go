@@ -40,6 +40,26 @@ func (m *Mapper40) Step() {
 	}
 }
 
+func (m *Mapper40) ShowROMAddress(address uint16) [uint16, string] {
+	switch {
+	case address < 0x2000:
+		return [address, "CHR"]
+	case address >= 0x6000 && address < 0x8000:
+		return [address-0x6000+0x2000*6, "PRG"]
+	case address >= 0x8000 && address < 0xa000:
+		return [address-0x8000+0x2000*4, "PRG"]
+	case address >= 0xa000 && address < 0xc000:
+		return [address-0xa000+0x2000*5, "PRG"]
+	case address >= 0xc000 && address < 0xe000:
+		return [address-0xc000+0x2000*uint16(m.bank), "PRG"]
+	case address >= 0xe000:
+		return [address-0xe000+0x2000*7, "PRG"]
+	default:
+		log.Fatalf("unhandled mapper40 read at address: 0x%04X", address)
+	}
+	return 0
+}
+
 func (m *Mapper40) Read(address uint16) byte {
 	switch {
 	case address < 0x2000:
