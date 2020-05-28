@@ -1,14 +1,12 @@
 package main
 
 import (
+	"encoding/gob"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
-	"path"
-	"strings"
 
-	"nes"
+	"nes/nes"
 )
 
 func testRom(path string) (err error) {
@@ -21,8 +19,19 @@ func testRom(path string) (err error) {
 	if err != nil {
 		return err
 	}
-	var dummy bool
-	console.Load(&dummy)
+	file, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	decoder := gob.NewDecoder(file)
+	console.Load(decoder)
+
+	address, kind, err := console.Mapper.ShowROMAddress(0x906A)
+	if err != nil {
+
+	}
+	fmt.Fprintf(os.Stdout, "ADDRESS: 0x%04X KIND: %s\n", address, kind)
 	console.StepSeconds(3)
 	return nil
 }
@@ -30,25 +39,14 @@ func testRom(path string) (err error) {
 func main() {
 	args := os.Args[1:]
 	if len(args) != 1 {
-		log.Fatalln("Usage: go run util/roms.go roms_directory")
+		log.Fatalln("Usage: go run util/rom_address.go rom_file")
 	}
-	dir := args[0]
-	infos, err := ioutil.ReadDir(dir)
-	if err != nil {
-		panic(err)
-	}
-	for _, info := range infos {
-		name := info.Name()
-		if !strings.HasSuffix(name, ".nes") {
-			continue
-		}
-		name = path.Join(dir, name)
-		err := testRom(name)
-		if err == nil {
-			fmt.Println("OK  ", name)
-		} else {
-			fmt.Println("FAIL", name)
-			fmt.Println(err)
-		}
+	file := args[0]
+	err := testRom(file)
+	if err == nil {
+		fmt.Println("OK  ", file)
+	} else {
+		fmt.Println("FAIL", file)
+		fmt.Println(err)
 	}
 }

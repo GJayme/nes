@@ -8,7 +8,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/akitaonrails/nes/nes"
+	"nes/nes"
 )
 
 func testRom(path string) (err error) {

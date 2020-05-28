@@ -40,24 +40,24 @@ func (m *Mapper40) Step() {
 	}
 }
 
-func (m *Mapper40) ShowROMAddress(address uint16) [uint16, string] {
+func (m *Mapper40) ShowROMAddress(address uint16) (int, string, error) {
 	switch {
 	case address < 0x2000:
-		return [address, "CHR"]
+		return int(address), "CHR", nil
 	case address >= 0x6000 && address < 0x8000:
-		return [address-0x6000+0x2000*6, "PRG"]
+		return int(address - 0x6000 + 0x2000*6), "PRG", nil
 	case address >= 0x8000 && address < 0xa000:
-		return [address-0x8000+0x2000*4, "PRG"]
+		return int(address - 0x8000 + 0x2000*4), "PRG", nil
 	case address >= 0xa000 && address < 0xc000:
-		return [address-0xa000+0x2000*5, "PRG"]
+		return int(address - 0xa000 + 0x2000*5), "PRG", nil
 	case address >= 0xc000 && address < 0xe000:
-		return [address-0xc000+0x2000*uint16(m.bank), "PRG"]
+		return int(address - 0xc000 + 0x2000*uint16(m.bank)), "PRG", nil
 	case address >= 0xe000:
-		return [address-0xe000+0x2000*7, "PRG"]
+		return int(address - 0xe000 + 0x2000*7), "PRG", nil
 	default:
 		log.Fatalf("unhandled mapper40 read at address: 0x%04X", address)
 	}
-	return 0
+	return 0, "", fmt.Errorf("invalid address: 0x%04X", address)
 }
 
 func (m *Mapper40) Read(address uint16) byte {

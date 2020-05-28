@@ -7,7 +7,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/akitaonrails/nes/ui"
+	"nes/ui"
 )
 
 func main() {

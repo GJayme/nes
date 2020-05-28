@@ -2,6 +2,7 @@ package nes
 
 import (
 	"encoding/gob"
+	"fmt"
 	"log"
 )
 
@@ -36,23 +37,23 @@ func (m *Mapper2) Load(decoder *gob.Decoder) error {
 func (m *Mapper2) Step() {
 }
 
-func (m *Mapper2) ShowROMAddress(address uint16) [uint16, string] {
+func (m *Mapper2) ShowROMAddress(address uint16) (int, string, error) {
 	switch {
 	case address < 0x2000:
-		return [address, "CHR"]
+		return int(address), "CHR", nil
 	case address >= 0xC000:
 		index := m.prgBank2*0x4000 + int(address-0xC000)
-		return [index, "PRG"]
+		return index, "PRG", nil
 	case address >= 0x8000:
 		index := m.prgBank1*0x4000 + int(address-0x8000)
-		return [index, "PRG"]
+		return index, "PRG", nil
 	case address >= 0x6000:
 		index := int(address) - 0x6000
-		return [index, "SRAM"]
+		return index, "SRAM", nil
 	default:
 		log.Fatalf("unhandled mapper2 read at address: 0x%04X", address)
 	}
-	return 0
+	return 0, "", fmt.Errorf("invalid address: 0x%04X", address)
 }
 
 func (m *Mapper2) Read(address uint16) byte {

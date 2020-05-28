@@ -2,6 +2,7 @@ package nes
 
 import (
 	"encoding/gob"
+	"fmt"
 	"log"
 )
 
@@ -37,24 +38,24 @@ func (m *Mapper225) Load(decoder *gob.Decoder) error {
 func (m *Mapper225) Step() {
 }
 
-func (m *Mapper225) ShowROMAddress(address uint16) [uint16, string] {
+func (m *Mapper225) ShowROMAddress(address uint16) (int, string, error) {
 	switch {
 	case address < 0x2000:
 		index := m.chrBank*0x2000 + int(address)
-		return [index, "CHR"]
+		return index, "CHR", nil
 	case address >= 0xC000:
 		index := m.prgBank2*0x4000 + int(address-0xC000)
-		return [index, "PRG"]
+		return index, "PRG", nil
 	case address >= 0x8000:
 		index := m.prgBank1*0x4000 + int(address-0x8000)
-		return [index, "PRG"]
+		return index, "PRG", nil
 	case address >= 0x6000:
 		index := int(address) - 0x6000
-		return [index, "SRAM"]
+		return index, "SRAM", nil
 	default:
 		log.Fatalf("unhandled Mapper225 read at address: 0x%04X", address)
 	}
-	return 0
+	return 0, "", fmt.Errorf("invalid address: 0x%04X", address)
 }
 
 func (m *Mapper225) Read(address uint16) byte {
@@ -78,7 +79,7 @@ func (m *Mapper225) Read(address uint16) byte {
 }
 
 func (m *Mapper225) Write(address uint16, value byte) {
-	if (address < 0x8000) {
+	if address < 0x8000 {
 		return
 	}
 
@@ -86,8 +87,8 @@ func (m *Mapper225) Write(address uint16, value byte) {
 	bank := (A >> 14) & 1
 	m.chrBank = (A & 0x3f) | (bank << 6)
 	prg := ((A >> 6) & 0x3f) | (bank << 6)
-	mode := (A >> 12) & 1;
-	if (mode == 1) {
+	mode := (A >> 12) & 1
+	if mode == 1 {
 		m.prgBank1 = prg
 		m.prgBank2 = prg
 	} else {
@@ -95,7 +96,7 @@ func (m *Mapper225) Write(address uint16, value byte) {
 		m.prgBank2 = prg + 1
 	}
 	mirr := (A >> 13) & 1
-	if (mirr == 1) {
+	if mirr == 1 {
 		m.Cartridge.Mirror = MirrorHorizontal
 	} else {
 		m.Cartridge.Mirror = MirrorVertical
