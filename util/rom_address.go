@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 
 	"nes/nes"
 )
@@ -36,6 +37,17 @@ func testRom(path string) (err error) {
 	return nil
 }
 
+func exec_gamegenie() error {
+    app := "/home/akitaonrails/Projects/GitHub/gamegenie/gamegenie"
+		out, err := exec.Command(app, "AATOZE").Output()
+		if err != nil {
+      fmt.Fprintln(os.Stderr, err)
+      return err
+		}
+   	fmt.Println(string(out))
+		return nil
+}
+
 func main() {
 	args := os.Args[1:]
 	if len(args) != 1 {
@@ -43,6 +55,7 @@ func main() {
 	}
 	file := args[0]
 	err := testRom(file)
+	err := exec_gamegenie()
 	if err == nil {
 		fmt.Println("OK  ", file)
 	} else {

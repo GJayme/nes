@@ -47,6 +47,10 @@ func savePath(hash string) string {
 	return homeDir + "/.nes/save/" + hash + ".dat"
 }
 
+func cheatsPath(hash string) string {
+	return homeDir + "/.nes/cheats/" + hash + ".txt"
+}
+
 func readKey(window *glfw.Window, key glfw.Key) bool {
 	return window.GetKey(key) == glfw.Press
 }

@@ -1,6 +1,9 @@
 package nes
 
-import "log"
+import (
+	"fmt"
+	"log"
+)
 
 type Memory interface {
 	Read(address uint16) byte
@@ -34,11 +37,24 @@ func (mem *cpuMemory) Read(address uint16) byte {
 	case address < 0x6000:
 		// TODO: I/O registers
 	case address >= 0x6000:
-		return mem.console.Mapper.Read(address)
+		value := mem.console.Mapper.Read(address)
+		return mem.replaceWithCheat(address, value)
 	default:
 		log.Fatalf("unhandled cpu memory read at address: 0x%04X", address)
 	}
 	return 0
+}
+
+func (mem *cpuMemory) replaceWithCheat(address uint16, realValue byte) byte {
+	if cheat, ok := mem.console.Cheats[int(address)]; ok {
+		if cheat.Condition == 0 || int(realValue) == cheat.Condition {
+			logAddress := fmt.Sprintf("0x%04X", address)
+			logValue := fmt.Sprintf("0x%04X", cheat.Value)
+			log.Println("FOUND CHEAT:", logAddress, logValue)
+			return byte(cheat.Value)
+		}
+	}
+	return realValue
 }
 
 func (mem *cpuMemory) Write(address uint16, value byte) {

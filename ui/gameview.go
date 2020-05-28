@@ -45,6 +45,8 @@ func (view *GameView) Enter() {
 			cartridge.SRAM = sram
 		}
 	}
+	// load cheats
+	view.console.LoadCheats(cheatsPath(view.hash))
 }
 
 func (view *GameView) Exit() {

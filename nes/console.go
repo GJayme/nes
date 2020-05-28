@@ -1,12 +1,23 @@
 package nes
 
 import (
+	"bufio"
+	"container/list"
 	"encoding/gob"
 	"image"
 	"image/color"
+	"log"
 	"os"
+	"os/exec"
 	"path"
+	"strconv"
+	"strings"
 )
+
+type Cheat struct {
+	Condition int
+	Value     int
+}
 
 type Console struct {
 	CPU         *CPU
@@ -17,6 +28,7 @@ type Console struct {
 	Controller2 *Controller
 	Mapper      Mapper
 	RAM         []byte
+	Cheats      map[int]Cheat
 }
 
 func NewConsole(path string) (*Console, error) {
@@ -28,7 +40,7 @@ func NewConsole(path string) (*Console, error) {
 	controller1 := NewController()
 	controller2 := NewController()
 	console := Console{
-		nil, nil, nil, cartridge, controller1, controller2, nil, ram}
+		nil, nil, nil, cartridge, controller1, controller2, nil, ram, make(map[int]Cheat)}
 	mapper, err := NewMapper(&console)
 	if err != nil {
 		return nil, err
@@ -151,6 +163,59 @@ func (console *Console) Load(decoder *gob.Decoder) error {
 	var dummy bool
 	if err := decoder.Decode(&dummy); err != nil {
 		return err
+	}
+	return nil
+}
+
+func readCheats(filename string) (*list.List, error) {
+	file, err := os.Open(filename)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	cheats := list.New()
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		cheats.PushBack(scanner.Text())
+	}
+
+	if err := scanner.Err(); err != nil {
+		log.Fatal(err)
+	}
+	return cheats, nil
+}
+
+func (console *Console) LoadCheats(filename string) error {
+	// TODO: hard coded gamegenie executable
+	app := "/home/akitaonrails/Projects/GitHub/gamegenie/gamegenie"
+	cheats, err := readCheats(filename)
+	if err != nil {
+		return err
+	}
+	for e := cheats.Front(); e != nil; e = e.Next() {
+		encodedCheat, _ := e.Value.(string)
+		out, err := exec.Command(app, encodedCheat).Output()
+		if err != nil {
+			log.Fatal(err)
+			return err
+		}
+
+		decodedCheat := strings.TrimRight(string(out), "\r\n")
+		if len(decodedCheat) > 6 {
+			address, _ := strconv.ParseInt(decodedCheat[0:4], 16, 32)
+			condition, _ := strconv.ParseInt(decodedCheat[4:6], 16, 16)
+			value, _ := strconv.ParseInt(decodedCheat[6:8], 16, 16)
+			console.Cheats[int(address)] = Cheat{
+				Value:     int(value),
+				Condition: int(condition)}
+		} else {
+			address, _ := strconv.ParseInt(decodedCheat[0:4], 16, 32)
+			value, _ := strconv.ParseInt(decodedCheat[4:6], 16, 16)
+			console.Cheats[int(address)] = Cheat{
+				Value:     int(value),
+				Condition: 0}
+		}
 	}
 	return nil
 }

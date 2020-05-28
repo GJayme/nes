@@ -4,6 +4,13 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+    {
+        "name": "Attach to Process",
+        "type": "go",
+        "request": "attach",
+        "mode": "local",
+        "processId": 0
+    },
         {
             "name": "Launch",
             "type": "go",
@@ -11,7 +18,7 @@
             "mode": "auto",
             "program": "${fileDirname}/../",
             "env": {},
-            "args": ["--debug", "/home/akitaonrails/Downloads/Super Mario Bros (E)-patched.nes"]
+            "args": ["/home/akitaonrails/Downloads/Super Mario Bros (E)-patched.nes"]
         }
     ]
 }
